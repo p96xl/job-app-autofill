@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Job App Autofill - Profile</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 24px auto; color: #222; }
+    h1 { font-size: 20px; }
+    h2 { font-size: 15px; margin-top: 28px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    label { display: block; font-size: 12px; color: #555; margin-top: 10px; }
+    input, select, textarea { width: 100%; padding: 6px; font-size: 14px; box-sizing: border-box; margin-top: 2px; }
+    textarea { min-height: 60px; font-family: inherit; }
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+    #save { margin-top: 24px; padding: 10px 20px; font-size: 14px; cursor: pointer; }
+    #saved { margin-left: 12px; color: #2e7d32; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>Job App Autofill - My Profile</h1>
+  <p>This is stored locally in your browser (<code>chrome.storage.local</code>) - nothing is sent anywhere. The "Fill this page" button uses these values to fill matching fields.</p>
+
+  <h2>Personal</h2>
+  <div class="row">
+    <div><label>First name<input data-key="personal.firstName"></label></div>
+    <div><label>Last name<input data-key="personal.lastName"></label></div>
+  </div>
+  <label>Email<input data-key="personal.email" type="email"></label>
+  <label>Phone<input data-key="personal.phone" type="tel"></label>
+  <label>Date of birth (use whatever format the site expects, e.g. MM/DD/YYYY)<input data-key="personal.dob" placeholder="MM/DD/YYYY"></label>
+  <label>LinkedIn URL<input data-key="personal.linkedin"></label>
+  <label>Portfolio / personal website<input data-key="personal.website"></label>
+  <label>GitHub URL<input data-key="personal.github"></label>
+  <label>Short summary / objective (for "tell us about yourself" boxes)
+    <textarea data-key="personal.summary"></textarea>
+  </label>
+
+  <h2>Address</h2>
+  <label>Address line 1<input data-key="personal.addressLine1"></label>
+  <label>Address line 2 (apt/unit)<input data-key="personal.addressLine2"></label>
+  <div class="row">
+    <div><label>City<input data-key="personal.city"></label></div>
+    <div><label>State<input data-key="personal.state"></label></div>
+    <div><label>Zip<input data-key="personal.zip"></label></div>
+  </div>
+  <label>Country<input data-key="personal.country"></label>
+
+  <h2>Education (most recent)</h2>
+  <label>School / University<input data-key="education.school"></label>
+  <div class="row">
+    <div><label>Degree<input data-key="education.degree" placeholder="e.g. Bachelor of Science"></label></div>
+    <div><label>Field of study<input data-key="education.fieldOfStudy"></label></div>
+  </div>
+  <label>GPA<input data-key="education.gpa"></label>
+
+  <h2>Most recent / current job</h2>
+  <label>Employer<input data-key="experience.company"></label>
+  <label>Job title<input data-key="experience.title"></label>
+
+  <h2>Work authorization &amp; preferences</h2>
+  <div class="row">
+    <div><label>Authorized to work in the US?
+      <select data-key="workAuth.authorizedToWorkUS"><option>Yes</option><option>No</option></select>
+    </label></div>
+    <div><label>Will you require sponsorship?
+      <select data-key="workAuth.requireSponsorship"><option>No</option><option>Yes</option></select>
+    </label></div>
+  </div>
+  <div class="row">
+    <div><label>Are you 18 or older?
+      <select data-key="workAuth.over18"><option>Yes</option><option>No</option></select>
+    </label></div>
+    <div><label>Willing to relocate?
+      <select data-key="workAuth.willingToRelocate"><option>Yes</option><option>No</option></select>
+    </label></div>
+  </div>
+  <label>Desired salary (leave blank to skip these fields)<input data-key="workAuth.desiredSalary"></label>
+  <label>When can you start?<input data-key="workAuth.startDate" placeholder="e.g. Immediately, or 2 weeks notice"></label>
+
+  <h2>Voluntary demographic questions (EEO)</h2>
+  <p style="font-size:12px;color:#666">These are always optional on real applications. Defaults below are "decline to answer" - change them if you'd rather they be filled differently.</p>
+  <label>Gender<input data-key="eeo.gender"></label>
+  <label>Race / ethnicity<input data-key="eeo.race"></label>
+  <label>Veteran status<input data-key="eeo.veteranStatus"></label>
+  <label>Disability status<input data-key="eeo.disabilityStatus"></label>
+
+  <button id="save">Save profile</button>
+  <span id="saved"></span>
+
+  <h2>Learned answers</h2>
+  <p style="font-size:12px;color:#666">
+    Whenever you manually answer a question the extension didn't recognize, it
+    remembers your answer here (matched by question wording) and reuses it next
+    time. Edit or delete entries below. Questions like "Have you applied to this
+    company before?" are deliberately never remembered here - those are always
+    asked fresh.
+  </p>
+
+  <p style="font-size:12px;color:#666">
+    You can also teach it an answer directly - useful for fields that don't
+    save automatically (e.g. a "State" field that's a text box with its own
+    dropdown instead of a real <code>&lt;select&gt;</code>). Copy the
+    question/label text as it appears on the page (or close to it - matching
+    is fuzzy) and the answer you want used.
+  </p>
+  <div class="row">
+    <div><label>Question / field label<input id="newLearnedQ" placeholder="e.g. State"></label></div>
+    <div><label>Answer<input id="newLearnedA" placeholder="e.g. Illinois"></label></div>
+  </div>
+  <button id="addLearned" style="margin-top:8px;">Add learned answer</button>
+  <span id="addLearnedMsg" style="margin-left:12px; font-size:13px; color:#2e7d32;"></span>
+
+  <table id="learnedTable" style="width:100%; font-size:13px; border-collapse:collapse; margin-top:16px;">
+    <thead>
+      <tr><th style="text-align:left">Question</th><th style="text-align:left">Your answer</th><th></th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Regex learned answers (advanced)</h2>
+  <p style="font-size:12px;color:#666">
+    For multiple-choice / radio questions where the wording varies a lot but
+    you always want the same kind of answer - e.g. "Were you referred by a
+    current employee?" with options Yes/No - you can match the question with
+    a regular expression and pick the option whose own text matches an answer
+    regular expression.
+  </p>
+  <p style="font-size:12px;color:#666">
+    Both patterns use <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions" target="_blank" rel="noopener">JavaScript regex syntax</a>
+    (not PCRE - inline flags like <code>(?i)</code> aren't supported; use the
+    Flags field instead, default <code>i</code> for case-insensitive). The
+    question pattern is tested against the field's full label/question text
+    (unanchored, so <code>referred|current</code> matches anywhere in "Were
+    you referred by a current employee?"). The answer pattern is tested
+    against each option's own text (e.g. <code>\bno\b</code> matches an
+    option labeled "No"). Only applies to radio/checkbox groups and
+    <code>&lt;select&gt;</code> dropdowns - there's no single value to type
+    into a text field. The same "never reused across companies" guardrail
+    (e.g. "have you applied here before") still applies.
+  </p>
+  <div class="row">
+    <div><label>Question pattern (regex)<input id="newRegexQ" placeholder="e.g. referred|current"></label></div>
+    <div><label>Answer pattern (regex)<input id="newRegexA" placeholder="e.g. \bno\b"></label></div>
+    <div style="flex:0 0 70px"><label>Flags<input id="newRegexFlags" value="i"></label></div>
+  </div>
+  <button id="addRegex" style="margin-top:8px;">Add regex rule</button>
+  <span id="addRegexMsg" style="margin-left:12px; font-size:13px;"></span>
+
+  <table id="regexTable" style="width:100%; font-size:13px; border-collapse:collapse; margin-top:16px;">
+    <thead>
+      <tr><th style="text-align:left">Question pattern</th><th style="text-align:left">Answer pattern</th><th style="text-align:left">Flags</th><th></th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="options.js"></script>
+</body>
+</html>

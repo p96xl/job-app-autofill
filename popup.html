@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: system-ui, sans-serif; width: 240px; padding: 12px; }
+    button { width: 100%; padding: 8px; font-size: 14px; cursor: pointer; margin-bottom: 8px; }
+    #status { font-size: 13px; color: #444; min-height: 1.2em; margin-bottom: 8px; }
+    a { font-size: 12px; }
+    #stop { background: #fce8e6; }
+  </style>
+</head>
+<body>
+  <button id="fill">Fill this page</button>
+  <button id="auto">Auto-fill &amp; Continue</button>
+  <button id="stop" style="display:none">Stop auto-fill</button>
+  <button id="learn">Learn mode: off</button>
+  <div id="status"></div>
+  <a href="#" id="openOptions">Edit my profile / learned answers</a>
+  <script src="popup.js"></script>
+</body>
+</html>
