@@ -192,6 +192,69 @@ function renderRegexRules(rules) {
 
 chrome.storage.local.get('learnedRegex', ({ learnedRegex }) => renderRegexRules(learnedRegex || []));
 
+function loadExport() {
+  chrome.storage.local.get(['profile', 'learned', 'learnedRegex'], (data) => {
+    document.getElementById('exportBox').value = JSON.stringify(data, null, 2);
+  });
+}
+
+loadExport();
+
+document.getElementById('copyExport').addEventListener('click', () => {
+  const box = document.getElementById('exportBox');
+  box.select();
+  navigator.clipboard.writeText(box.value).catch(() => document.execCommand('copy'));
+  const msg = document.getElementById('copyMsg');
+  msg.textContent = 'Copied!';
+  setTimeout(() => { msg.textContent = ''; }, 2000);
+});
+
+document.getElementById('doImport').addEventListener('click', () => {
+  const raw = document.getElementById('importBox').value.trim();
+  const msg = document.getElementById('importMsg');
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    msg.style.color = '#c62828';
+    msg.textContent = `Invalid JSON: ${e.message}`;
+    setTimeout(() => { msg.textContent = ''; }, 4000);
+    return;
+  }
+
+  const allowed = ['profile', 'learned', 'learnedRegex'];
+  const toSet = {};
+  for (const key of allowed) {
+    if (key in data) toSet[key] = data[key];
+  }
+
+  if (Object.keys(toSet).length === 0) {
+    msg.style.color = '#c62828';
+    msg.textContent = 'No recognized keys found (expected profile, learned, learnedRegex).';
+    setTimeout(() => { msg.textContent = ''; }, 4000);
+    return;
+  }
+
+  chrome.storage.local.set(toSet, () => {
+    // Reload all UI
+    chrome.storage.local.get('profile', ({ profile }) => {
+      fields.forEach(el => {
+        const key = el.dataset.key;
+        const value = get(profile, key);
+        el.value = value !== undefined ? value : (get(DEFAULTS, key) || '');
+      });
+    });
+    chrome.storage.local.get('learned', ({ learned }) => renderLearned(learned || {}));
+    chrome.storage.local.get('learnedRegex', ({ learnedRegex }) => renderRegexRules(learnedRegex || []));
+    loadExport();
+    document.getElementById('importBox').value = '';
+    msg.style.color = '#2e7d32';
+    msg.textContent = 'Imported!';
+    setTimeout(() => { msg.textContent = ''; }, 2500);
+  });
+});
+
 document.getElementById('addRegex').addEventListener('click', () => {
   const qEl = document.getElementById('newRegexQ');
   const aEl = document.getElementById('newRegexA');
